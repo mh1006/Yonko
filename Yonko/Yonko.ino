@@ -3,15 +3,20 @@
 #include "Pond.h"
 #include "Mushroom.h"
 
+#include "LCD.h"
+
 unsigned long previousMillis = 0;
 const long interval = 500;
 
 void setup() {
+  Serial.begin(9600);
+
   setupMushroom();
   setupFlower();
   setupLeaves();
   setupPond();
-  Serial.begin(9600);
+  
+  setupLCD();
 }
 
 void loop() {
@@ -19,6 +24,9 @@ void loop() {
   updateFlower();  
   updatePond();    
   updateMushroom(); 
+
+  updateLCD();
+  
   unsigned long currentMillis = millis();
   
   if (currentMillis - previousMillis >= interval) {
@@ -30,16 +38,30 @@ void loop() {
     
     Serial.print("Pond(0-1023): ");
     Serial.print(pondPressure);
-    Serial.print(" \t|\t ");
+    Serial.print(" \t|\t ");\
 
-    Serial.print("Motor(Angle): ");
-    Serial.println(leavesAngle);
+    Serial.print(" [");
+    if (isCupPlaced) {
+      Serial.print("Placed, Diff: ");
+      int diff = pondPressure - storedWeight;
+      
+      if (diff > 0) {
+        Serial.print("+"); 
+      }
+      Serial.print(diff); 
+    } else {
+      Serial.print("Lifted"); 
+    }
+    Serial.print("] \t|\t ");
 
-    Serial.print("Speaker(Vol): ");
-    Serial.print(musicVolume);
-    Serial.print(" \t|\t ");
-    
+    // Serial.print("Active Leaves: ");
+    // Serial.println(activeLeaves);
+
     Serial.print("State: ");
     Serial.println(isPlaying ? "Play" : "Pause");
+    Serial.print(" \t|\t ");
+    Serial.print("Speaker(Vol): ");
+    Serial.print(musicVolume);    
+    
   }
 }
