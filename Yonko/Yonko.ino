@@ -54,14 +54,15 @@ void loop() {
     }
     Serial.print("] \t|\t ");
 
-    // Serial.print("Active Leaves: ");
-    // Serial.println(activeLeaves);
+    Serial.print("Active Leaves: ");
+    Serial.println(activeLeaves);
 
     Serial.print("State: ");
     Serial.println(isPlaying ? "Play" : "Pause");
     Serial.print(" \t|\t ");
     Serial.print("Speaker(Vol): ");
-    Serial.print(musicVolume);    
+    Serial.print(musicVolume);  
+    Serial.print(" \t");  
     
   }
 }

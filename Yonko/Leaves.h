@@ -1,60 +1,52 @@
-#include <Servo.h>
-
-// --- Pin Definitions for Leaves ---
-// 4 buttons for the 4 leaves
-const int leafBtnPins[4] = {7, 8, 12, 13}; 
-// 4 servos for the 4 leaves (Ensure you connect these to PWM capable or digital pins)
-const int leafServoPins[4] = {9, 10, 11, A1}; 
-
-Servo leafServos[4];
+// --- Leaves (Dual Button + Dual LED Simulation) ---
+// 2 buttons to simulate 2 leaves (Recommended pins: D7, D9)
+const int leafBtnPins[2] = {7, 9}; 
+// 2 LEDs to simulate leaf status (Recommended pins: D8, D10)
+const int leafLedPins[2] = {8, 10}; 
 
 // --- Constants & Variables ---
-const int LEAF_UP_ANGLE = 90;
-const int LEAF_DOWN_ANGLE = 170;
-
-// 15 minutes in milliseconds (15 * 60 * 1000)
-// Tip: Change this to 5000 (5 seconds) while testing!
-const unsigned long FIFTEEN_MINUTES = 900000UL; 
+// 5 seconds (5000 ms) for testing, change to 15 minutes (900000UL) for final exhibition
+const unsigned long FIFTEEN_MINUTES = 5000UL; 
 
 // Queue system to track the order of button presses
-int leafQueue[4]; 
+int leafQueue[2]; 
 int queueHead = 0;
 int queueTail = 0;
 int activeLeaves = 0; 
-bool isLeafDown[4] = {false, false, false, false};
-bool lastBtnStates[4] = {HIGH, HIGH, HIGH, HIGH};
+bool isLeafDown[2] = {false, false};
+bool lastBtnStates[2] = {HIGH, HIGH};
 
 unsigned long lastLeafRiseTime = 0;
 
-// Global variable to share timer status with Flower.h
+// Global variable read by Flower.h to share timer status
 bool isTimerActive = false; 
 
 void setupLeaves() {
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 2; i++) {
     pinMode(leafBtnPins[i], INPUT_PULLUP);
-    leafServos[i].attach(leafServoPins[i]);
-    leafServos[i].write(LEAF_UP_ANGLE); // Initial position: Leaves are up
+    pinMode(leafLedPins[i], OUTPUT);
+    digitalWrite(leafLedPins[i], LOW); // Initial state: LED off (Leaf is up)
   }
 }
 
 void updateLeaves() {
   // -------------------------
-  // 1. Check for Button Presses
+  // 1. Detect Button Press
   // -------------------------
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 2; i++) {
     bool currentState = digitalRead(leafBtnPins[i]);
     
-    // If button is pressed (LOW) and wasn't pressed before
+    // If button is pressed (LOW) and wasn't pressed previously
     if (lastBtnStates[i] == HIGH && currentState == LOW) {
       delay(50); // Simple debounce
       
-      // If the leaf is not already down, drop it and add to queue
-      if (!isLeafDown[i] && activeLeaves < 4) {
+      // If leaf is not already down (LED off), and active leaves are less than 2
+      if (!isLeafDown[i] && activeLeaves < 2) {
         isLeafDown[i] = true;
-        leafServos[i].write(LEAF_DOWN_ANGLE); // Leaf drops
+        digitalWrite(leafLedPins[i], HIGH); // LED on: Leaf drops
         
-        leafQueue[queueTail] = i; // Save which leaf was pressed
-        queueTail = (queueTail + 1) % 4;
+        leafQueue[queueTail] = i; // Add this leaf to the queue
+        queueTail = (queueTail + 1) % 2;
         
         // If this is the first leaf to drop, start the timer
         if (activeLeaves == 0) {
@@ -67,25 +59,25 @@ void updateLeaves() {
   }
 
   // -------------------------
-  // 2. Timer Logic (Raise Leaves sequentially)
+  // 2. Timer Logic (Sequentially turn off LEDs / raise leaves)
   // -------------------------
   if (activeLeaves > 0) {
-    isTimerActive = true; // Timer is ongoing, leaves haven't fully risen
+    isTimerActive = true; // Timer is active, leaves haven't fully risen
     
-    // Check if 15 minutes have passed since the last leaf was raised/dropped
+    // Check if the set waiting time has been reached (currently 5 seconds)
     if (millis() - lastLeafRiseTime >= FIFTEEN_MINUTES) {
-      // Get the oldest leaf from the queue
+      // Get the oldest leaf from the queue (the one pressed first)
       int leafToRise = leafQueue[queueHead];
-      queueHead = (queueHead + 1) % 4;
+      queueHead = (queueHead + 1) % 2;
       
-      // Raise the leaf
-      leafServos[leafToRise].write(LEAF_UP_ANGLE);
+      // Raise the leaf (LED off)
+      digitalWrite(leafLedPins[leafToRise], LOW);
       isLeafDown[leafToRise] = false;
       
       activeLeaves--;
       lastLeafRiseTime = millis(); // Reset timer for the next leaf
     }
   } else {
-    isTimerActive = false; // All leaves are up, timer is complete
+    isTimerActive = false; // All leaves are up, timer complete
   }
 }

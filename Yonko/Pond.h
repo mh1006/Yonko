@@ -3,7 +3,7 @@
 // --- Pin & LED Definitions ---
 const int fsrPin = A0;      
 const int neoPixelPin = A3; 
-const int NUM_LEDS = 16;    
+const int NUM_LEDS = 10;    
 
 Adafruit_NeoPixel pondLeds(NUM_LEDS, neoPixelPin, NEO_GRB + NEO_KHZ800);
 
