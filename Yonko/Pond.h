@@ -3,7 +3,7 @@
 // --- Pin & LED Definitions ---
 const int fsrPin = A0;      
 const int neoPixelPin = A3; 
-const int NUM_LEDS = 10;    
+const int NUM_LEDS = 7;    
 
 Adafruit_NeoPixel pondLeds(NUM_LEDS, neoPixelPin, NEO_GRB + NEO_KHZ800);
 
@@ -46,8 +46,8 @@ void updatePond() {
   if (currentTime - lastFsrCheckTime >= 100) {
     pondPressure = analogRead(fsrPin);
     
-    // Condition A: Cup is PLACED on the coaster (Pressure > 600)
-    if (pondPressure > 200) {
+    // Condition A: Cup is PLACED on the coaster (Pressure > 200)
+    if (pondPressure > 50) {
       if (!isCupPlaced) {
         // The exact moment the cup is placed back down
         isCupPlaced = true;
@@ -74,7 +74,7 @@ void updatePond() {
       }
     }
     // Condition B: Cup is LIFTED from the coaster (Pressure < 200)
-    else if (pondPressure < 200) {
+    else if (pondPressure < 30) {
       isCupPlaced = false;
       pendingWeightCheck = false; // Cancel any pending checks if lifted too quickly
     }

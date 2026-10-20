@@ -3,7 +3,6 @@
 #include "Pond.h"
 #include "Mushroom.h"
 
-#include "LCD.h"
 
 unsigned long previousMillis = 0;
 const long interval = 500;
@@ -15,8 +14,7 @@ void setup() {
   setupFlower();
   setupLeaves();
   setupPond();
-  
-  setupLCD();
+
 }
 
 void loop() {
@@ -24,8 +22,6 @@ void loop() {
   updateFlower();  
   updatePond();    
   updateMushroom(); 
-
-  updateLCD();
   
   unsigned long currentMillis = millis();
   
